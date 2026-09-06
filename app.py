@@ -53,7 +53,7 @@ st.markdown("""
         padding: 6px 24px;
         display: inline-block;
     }
-    .top-left-box { min-height: 48vh; }
+    .top-left-box { min-height: 55vh; }
     .bottom-right-box { min-height: 30vh; }
     </style>
 """, unsafe_allow_html=True)
