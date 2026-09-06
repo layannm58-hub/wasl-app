@@ -9,15 +9,25 @@ st.markdown("""
         color: white;
         font-family: 'Times New Roman', Times, serif;
     }
+    .block-container {
+        padding-top: 2rem;
+        max-width: 1200px;
+    }
+    [data-testid="stHorizontalBlock"] {
+        gap: 1.5rem;
+    }
+    div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"] {
+        margin-bottom: 0 !important;
+    }
+
     .header-frame {
         border: 1px solid #4a4a8a;
         border-radius: 8px;
-        padding: 14px 24px;
+        padding: 12px 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-family: 'Times New Roman', Times, serif;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
     .header-spacer { flex: 1; }
     .room-no-pill {
@@ -25,40 +35,41 @@ st.markdown("""
         border: 1px solid #8a8ab0;
         border-radius: 4px;
         padding: 6px 18px;
-        text-align: center;
     }
     .wasl-logo {
         flex: 1;
         text-align: right;
         color: #508782;
+        line-height: 1.3;
     }
+
     .box {
         background-color: #12082d;
         border: 1px solid white;
         border-radius: 10px;
-        padding: 20px;
-        font-family: 'Times New Roman', Times, serif;
+        padding: 16px;
+        margin-bottom: 16px;
     }
     .box-notes {
         background-color: #676279;
         border-radius: 10px;
-        padding: 20px;
-        font-family: 'Times New Roman', Times, serif;
-        min-height: 36vh;
+        padding: 16px;
+        min-height: 42vh;
     }
-    .box-notes hr { border-color: white; }
+    .box-notes hr { border-color: white; margin: 8px 0; }
+    .top-left-box { min-height: 46vh; }
+    .bottom-right-box { min-height: 28vh; margin-top: 16px; }
+
     .teal-pill {
         background-color: #508782;
         border-radius: 20px;
         padding: 6px 24px;
-        display: inline-block;
+        float: right;
     }
-    .top-left-box { min-height: 55vh; }
-    .bottom-right-box { min-height: 30vh; }
     </style>
 """, unsafe_allow_html=True)
 
-# ===== الشريط العلوي (إطار واحد متصل) =====
+# ===== الشريط العلوي =====
 st.markdown("""
     <div class='header-frame'>
         <div class='header-spacer'></div>
@@ -67,16 +78,15 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# ===== الأعمدة بنسب مطابقة للتصميم (36% / 56%) =====
+# ===== الأعمدة (36% / 56%) =====
 left_col, right_col = st.columns([36, 56])
 
 with left_col:
     st.markdown("""
         <div class='box top-left-box'>
-            <div style='text-align:right;'><span class='teal-pill'>&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+            <span class='teal-pill'>&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
     """, unsafe_allow_html=True)
-    st.write("")
     st.markdown("""
         <div class='box-notes'>
             <b>Patient Notes:</b><hr>
@@ -84,6 +94,5 @@ with left_col:
     """, unsafe_allow_html=True)
 
 with right_col:
-    camera_photo = st.camera_input("مكان الكاميرا (مؤقت)")
-    st.write("")
+    camera_photo = st.camera_input("مكان الكاميرا (مؤقت)", label_visibility="collapsed")
     st.markdown("<div class='box bottom-right-box'></div>", unsafe_allow_html=True)
