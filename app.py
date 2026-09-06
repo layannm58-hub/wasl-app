@@ -54,10 +54,10 @@ st.markdown("""
         background-color: #676279;
         border-radius: 10px;
         padding: 16px;
-        min-height: 42vh;
+        min-height: 38vh;
     }
     .box-notes hr { border-color: white; margin: 8px 0; }
-    .top-left-box { min-height: 46vh; }
+    .top-left-box { min-height: 38vh; }
     .bottom-right-box { min-height: 28vh; margin-top: 16px; }
 
     .teal-pill {
