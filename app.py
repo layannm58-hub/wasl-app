@@ -146,6 +146,7 @@ with left_col:
         if selected_key:
             st.video(SIGN_DATA[selected_key]["video"])
             st.markdown(f"<div class='sign-label'>{SIGN_DATA[selected_key]['label']}</div>", unsafe_allow_html=True)
+            st.markdown("<div style='text-align:center; font-size:11px; color:#8a8aa8; margin-top:4px;'>المصدر: الجمعية السعودية للإعاقة السمعية (sshi.sa)</div>", unsafe_allow_html=True)
         else:
             st.markdown("<div class='sign-label'>✋ سيظهر الفيديو هنا تلقائيًا فور تحدث الطبيب</div>", unsafe_allow_html=True)
 
