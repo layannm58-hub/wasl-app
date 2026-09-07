@@ -80,11 +80,13 @@ st.markdown("""
 
 # ===== قاموس الكلمات الطبية =====
 SIGN_DATA = {
-    "headache":  {"label": "صداع",       "video": "signs/headache.mp4"},
-    "pain":      {"label": "ألم",         "video": "signs/pain.mp4"},
-    "stomach":   {"label": "بطن",         "video": "signs/stomach.mp4"},
-    "nausea":    {"label": "غثيان",       "video": "signs/nausea.mp4"},
-    "dizziness": {"label": "دوخة / دوار", "video": "signs/dizziness.mp4"},
+    "headache":   {"label": "صداع",              "video": "signs/headache.mp4"},
+    "pain":       {"label": "ألم",                "video": "signs/pain.mp4"},
+    "stomach":    {"label": "بطن",                "video": "signs/stomach.mp4"},
+    "nausea":     {"label": "غثيان",              "video": "signs/nausea.mp4"},
+    "dizziness":  {"label": "دوخة / دوار",        "video": "signs/dizziness.mp4"},
+    "how_health": {"label": "كيف صحتك؟",          "video": "signs/how_health.mp4"},
+    "check_look": {"label": "هل لي أن ألقي نظرة؟", "video": "signs/check_look.mp4"},
 }
 SIGN_KEYWORDS = {
     "headache": ["صداع"],
@@ -92,6 +94,8 @@ SIGN_KEYWORDS = {
     "stomach": ["بطن"],
     "nausea": ["غثيان"],
     "dizziness": ["دوخه", "دوار"],
+    "how_health": ["صحتك", "كيف صحتك"],
+    "check_look": ["القي نظره", "ألقي نظرة", "اشوف", "اعاينك"],
 }
 
 
