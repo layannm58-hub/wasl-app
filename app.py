@@ -73,19 +73,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ===== قاموس الكلمات الطبية =====
+# الكلمات المكتوبة هنا بصيغتها القياسية فقط -- التطبيع (Normalization) بالجافاسكربت
+# يتكفل تلقائيًا بمعالجة اختلاف الهمزة (أ/إ/آ/ا) والتاء المربوطة/الهاء وغيرها
 SIGN_DATA = {
     "headache":  {"label": "صداع",       "video": "signs/headache.mp4",  "keywords": ["صداع"]},
-    "pain":      {"label": "ألم",         "video": "signs/pain.mp4",      "keywords": ["ألم", "الم"]},
+    "pain":      {"label": "ألم",         "video": "signs/pain.mp4",      "keywords": ["الم"]},
     "stomach":   {"label": "بطن",         "video": "signs/stomach.mp4",   "keywords": ["بطن"]},
     "nausea":    {"label": "غثيان",       "video": "signs/nausea.mp4",    "keywords": ["غثيان"]},
-    "dizziness": {"label": "دوخة / دوار", "video": "signs/dizziness.mp4", "keywords": ["دوخة", "دوار"]},
+    "dizziness": {"label": "دوخة / دوار", "video": "signs/dizziness.mp4", "keywords": ["دوخه", "دوار"]},
 }
 
 NO_SELECTION = "-- اختر عبارة --"
 options = [NO_SELECTION] + [v["label"] for v in SIGN_DATA.values()]
 label_to_key = {v["label"]: k for k, v in SIGN_DATA.items()}
 
-# ===== قراءة الكلمة المكتشفة تلقائيًا من رابط الصفحة (لو موجودة) =====
+# ===== قراءة الكلمة المكتشفة من رابط الصفحة (لو موجودة) =====
 detected_key = st.query_params.get("word", "")
 default_index = 0
 if detected_key in SIGN_DATA:
@@ -108,7 +110,7 @@ with left_col:
             st.video(SIGN_DATA[selected_key]["video"])
             st.markdown(f"<div class='sign-label'>{SIGN_DATA[selected_key]['label']}</div>", unsafe_allow_html=True)
         else:
-            st.markdown("<div class='sign-label'>✋ سيظهر فيديو الإشارة هنا تلقائيًا عند التحدث، أو اختاري يدويًا</div>", unsafe_allow_html=True)
+            st.markdown("<div class='sign-label'>✋ سيظهر هنا اقتراح فيديو الإشارة عند التحدث، أو اختاري يدويًا</div>", unsafe_allow_html=True)
 
     st.markdown("""
         <div class='box-notes'>
@@ -119,8 +121,9 @@ with left_col:
 with right_col:
     camera_photo = st.camera_input("مكان الكاميرا (مؤقت)", label_visibility="collapsed")
 
-    # ===== Speech-to-Text مع الكشف التلقائي عن الكلمات الطبية =====
-    keywords_js = json.dumps({k: v["keywords"] for k, v in SIGN_DATA.items()})
+    # ===== Speech-to-Text مع كشف الكلمات الطبية (مع تطبيع الحروف) =====
+    keywords_js = json.dumps({k: v["keywords"] for k, v in SIGN_DATA.items()}, ensure_ascii=False)
+    labels_js = json.dumps({k: v["label"] for k, v in SIGN_DATA.items()}, ensure_ascii=False)
 
     speech_html = f"""
     <div style="background-color:#12082d; border:1px solid white; border-radius:10px;
@@ -129,22 +132,51 @@ with right_col:
               padding:8px 24px; color:white; font-family:'Times New Roman',serif;
               font-size:16px; cursor:pointer;">🎙️ تحدث الآن</button>
       <p id="output" style="margin-top:16px; font-size:18px;">النص سيظهر هنا...</p>
+      <div id="matchArea" style="margin-top:12px;"></div>
       <script>
       const micBtn = document.getElementById('micBtn');
       const output = document.getElementById('output');
+      const matchArea = document.getElementById('matchArea');
       const SIGN_KEYWORDS = {keywords_js};
+      const SIGN_LABELS = {labels_js};
       let recognition;
 
+      // توحيد أشكال الحروف المتشابهة (همزات، تاء مربوطة/هاء، تطويل، تشكيل)
+      function normalizeArabic(text) {{
+          return text
+              .replace(/[إأآا]/g, 'ا')
+              .replace(/ى/g, 'ي')
+              .replace(/ة/g, 'ه')
+              .replace(/[\\u064B-\\u0652]/g, '')
+              .replace(/ـ/g, '')
+              .replace(/\\s+/g, ' ')
+              .trim();
+      }}
+
       function findMatch(text) {{
+          const normText = normalizeArabic(text);
           for (const key in SIGN_KEYWORDS) {{
               const words = SIGN_KEYWORDS[key];
               for (const w of words) {{
-                  if (text.includes(w)) {{
+                  if (normText.includes(normalizeArabic(w))) {{
                       return key;
                   }}
               }}
           }}
           return null;
+      }}
+
+      function showConfirmButton(matchedKey) {{
+          matchArea.innerHTML = '';
+          const btn = document.createElement('button');
+          btn.innerText = '✅ تم اكتشاف: ' + SIGN_LABELS[matchedKey] + ' — اضغطي لعرض الفيديو';
+          btn.style = 'background-color:#4fa89b; border:none; border-radius:20px; padding:10px 20px; color:white; font-family:\\'Times New Roman\\',serif; font-size:15px; cursor:pointer;';
+          btn.onclick = function() {{
+              const url = new URL(window.parent.location.href);
+              url.searchParams.set('word', matchedKey);
+              window.parent.location.href = url.toString();
+          }};
+          matchArea.appendChild(btn);
       }}
 
       if ('webkitSpeechRecognition' in window) {{
@@ -159,9 +191,9 @@ with right_col:
 
               const matchedKey = findMatch(text);
               if (matchedKey) {{
-                  const url = new URL(window.parent.location.href);
-                  url.searchParams.set('word', matchedKey);
-                  window.parent.location.href = url.toString();
+                  showConfirmButton(matchedKey);
+              }} else {{
+                  matchArea.innerHTML = '';
               }}
           }};
           recognition.onerror = function(event) {{
@@ -173,9 +205,10 @@ with right_col:
 
       micBtn.onclick = function() {{
           output.innerText = "... يستمع الآن";
+          matchArea.innerHTML = '';
           recognition.start();
       }};
       </script>
     </div>
     """
-    components.html(speech_html, height=280)
+    components.html(speech_html, height=320)
