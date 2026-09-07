@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="WASL - وَصل", layout="wide")
 
@@ -54,17 +55,17 @@ st.markdown("""
         background-color: #676279;
         border-radius: 10px;
         padding: 16px;
-        min-height: 47vh;
+        min-height: 55vh;
     }
     .box-notes hr { border-color: white; margin: 8px 0; }
-    .top-left-box { min-height: 47vh; }
-    .bottom-right-box { min-height: 28vh; margin-top: 16px; }
-
-    .teal-pill {
-        background-color: #508782;
-        border-radius: 20px;
-        padding: 6px 24px;
-        float: right;
+    .top-left-box {
+        min-height: 55vh;
+    }
+    .sign-label {
+        text-align: center;
+        color: #cfcfe8;
+        font-size: 15px;
+        margin-top: 8px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -78,15 +79,38 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# ===== قاموس الكلمات وفيديوهات لغة الإشارة =====
+# اسم الملف داخل مجلد signs/ لكل عبارة طبية
+SIGN_VIDEOS = {
+    "-- اختر عبارة --": None,
+    "صداع": "signs/headache.mp4",
+    "ألم": "signs/pain.mp4",
+    "بطن": "signs/stomach.mp4",
+    "غثيان": "signs/nausea.mp4",
+    "دوخة / دوار": "signs/dizziness.mp4",
+}
+
 # ===== الأعمدة (36% / 56%) =====
 left_col, right_col = st.columns([36, 56])
 
 with left_col:
-    st.markdown("""
-        <div class='box top-left-box'>
-            <span class='teal-pill'>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<div class='box top-left-box'>", unsafe_allow_html=True)
+
+    selected_word = st.selectbox(
+        "اختاري العبارة الطبية:",
+        options=list(SIGN_VIDEOS.keys()),
+        label_visibility="collapsed"
+    )
+
+    video_path = SIGN_VIDEOS[selected_word]
+    if video_path:
+        st.video(video_path)
+        st.markdown(f"<div class='sign-label'>{selected_word}</div>", unsafe_allow_html=True)
+    else:
+        st.markdown("<div class='sign-label'>✋ اختاري عبارة لعرض فيديو لغة الإشارة</div>", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
     st.markdown("""
         <div class='box-notes'>
             <b>Patient Notes:</b><hr>
@@ -95,4 +119,42 @@ with left_col:
 
 with right_col:
     camera_photo = st.camera_input("مكان الكاميرا (مؤقت)", label_visibility="collapsed")
-    st.markdown("<div class='box bottom-right-box'></div>", unsafe_allow_html=True)
+
+    # ===== Speech-to-Text =====
+    speech_html = """
+    <div style="background-color:#12082d; border:1px solid white; border-radius:10px;
+                padding:16px; font-family:'Times New Roman',serif; color:white; min-height:26vh; margin-top:16px;">
+      <button id="micBtn" style="background-color:#508782; border:none; border-radius:20px;
+              padding:8px 24px; color:white; font-family:'Times New Roman',serif;
+              font-size:16px; cursor:pointer;">🎙️ تحدث الآن</button>
+      <p id="output" style="margin-top:16px; font-size:18px;">النص سيظهر هنا...</p>
+      <script>
+      const micBtn = document.getElementById('micBtn');
+      const output = document.getElementById('output');
+      let recognition;
+
+      if ('webkitSpeechRecognition' in window) {
+          recognition = new webkitSpeechRecognition();
+          recognition.lang = 'ar-SA';
+          recognition.continuous = false;
+          recognition.interimResults = false;
+
+          recognition.onresult = function(event) {
+              const text = event.results[0][0].transcript;
+              output.innerText = text;
+          };
+          recognition.onerror = function(event) {
+              output.innerText = "حدث خطأ: " + event.error;
+          };
+      } else {
+          output.innerText = "المتصفح لا يدعم هذه الميزة، جربي Google Chrome.";
+      }
+
+      micBtn.onclick = function() {
+          output.innerText = "... يستمع الآن";
+          recognition.start();
+      };
+      </script>
+    </div>
+    """
+    components.html(speech_html, height=280)
