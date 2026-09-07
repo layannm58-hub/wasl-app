@@ -1,6 +1,5 @@
 import streamlit as st
-import streamlit.components.v1 as components
-import json
+from streamlit_js_eval import streamlit_js_eval
 
 st.set_page_config(page_title="WASL - وَصل", layout="wide")
 
@@ -60,6 +59,13 @@ st.markdown("""
         font-size: 15px;
         margin-top: 8px;
     }
+    .speech-box {
+        background-color: #12082d;
+        border: 1px solid white;
+        border-radius: 10px;
+        padding: 16px;
+        margin-top: 16px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -73,31 +79,62 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ===== قاموس الكلمات الطبية =====
-# الكلمات المكتوبة هنا بصيغتها القياسية فقط -- التطبيع (Normalization) بالجافاسكربت
-# يتكفل تلقائيًا بمعالجة اختلاف الهمزة (أ/إ/آ/ا) والتاء المربوطة/الهاء وغيرها
 SIGN_DATA = {
-    "headache":  {"label": "صداع",       "video": "signs/headache.mp4",  "keywords": ["صداع"]},
-    "pain":      {"label": "ألم",         "video": "signs/pain.mp4",      "keywords": ["الم"]},
-    "stomach":   {"label": "بطن",         "video": "signs/stomach.mp4",   "keywords": ["بطن"]},
-    "nausea":    {"label": "غثيان",       "video": "signs/nausea.mp4",    "keywords": ["غثيان"]},
-    "dizziness": {"label": "دوخة / دوار", "video": "signs/dizziness.mp4", "keywords": ["دوخه", "دوار"]},
+    "headache":  {"label": "صداع",       "video": "signs/headache.mp4"},
+    "pain":      {"label": "ألم",         "video": "signs/pain.mp4"},
+    "stomach":   {"label": "بطن",         "video": "signs/stomach.mp4"},
+    "nausea":    {"label": "غثيان",       "video": "signs/nausea.mp4"},
+    "dizziness": {"label": "دوخة / دوار", "video": "signs/dizziness.mp4"},
 }
+SIGN_KEYWORDS = {
+    "headache": ["صداع"],
+    "pain": ["الم"],
+    "stomach": ["بطن"],
+    "nausea": ["غثيان"],
+    "dizziness": ["دوخه", "دوار"],
+}
+
+
+def normalize_arabic(text: str) -> str:
+    text = text or ""
+    for ch in "إأآا":
+        text = text.replace(ch, "ا")
+    text = text.replace("ى", "ي").replace("ة", "ه")
+    text = "".join(c for c in text if not ("\u064B" <= c <= "\u0652"))
+    text = text.replace("ـ", "")
+    return " ".join(text.split()).strip()
+
+
+def find_match(transcript: str):
+    norm_text = normalize_arabic(transcript)
+    for key, words in SIGN_KEYWORDS.items():
+        for w in words:
+            if normalize_arabic(w) in norm_text:
+                return key
+    return None
+
+
+if "detected_key" not in st.session_state:
+    st.session_state["detected_key"] = None
+if "listening" not in st.session_state:
+    st.session_state["listening"] = False
+if "last_transcript" not in st.session_state:
+    st.session_state["last_transcript"] = ""
 
 NO_SELECTION = "-- اختر عبارة --"
 options = [NO_SELECTION] + [v["label"] for v in SIGN_DATA.values()]
 label_to_key = {v["label"]: k for k, v in SIGN_DATA.items()}
-
-# ===== قراءة الكلمة المكتشفة من رابط الصفحة (لو موجودة) =====
-detected_key = st.query_params.get("word", "")
-default_index = 0
-if detected_key in SIGN_DATA:
-    default_index = options.index(SIGN_DATA[detected_key]["label"])
+key_to_label = {k: v["label"] for k, v in SIGN_DATA.items()}
 
 # ===== الأعمدة (36% / 56%) =====
 left_col, right_col = st.columns([36, 56])
 
 with left_col:
     with st.container(border=True):
+        default_index = 0
+        if st.session_state["detected_key"] in SIGN_DATA:
+            default_index = options.index(key_to_label[st.session_state["detected_key"]])
+
         selected_word = st.selectbox(
             "اختاري العبارة الطبية:",
             options=options,
@@ -110,7 +147,7 @@ with left_col:
             st.video(SIGN_DATA[selected_key]["video"])
             st.markdown(f"<div class='sign-label'>{SIGN_DATA[selected_key]['label']}</div>", unsafe_allow_html=True)
         else:
-            st.markdown("<div class='sign-label'>✋ سيظهر هنا اقتراح فيديو الإشارة عند التحدث، أو اختاري يدويًا</div>", unsafe_allow_html=True)
+            st.markdown("<div class='sign-label'>✋ سيظهر الفيديو هنا تلقائيًا فور تحدث الطبيب</div>", unsafe_allow_html=True)
 
     st.markdown("""
         <div class='box-notes'>
@@ -121,94 +158,48 @@ with left_col:
 with right_col:
     camera_photo = st.camera_input("مكان الكاميرا (مؤقت)", label_visibility="collapsed")
 
-    # ===== Speech-to-Text مع كشف الكلمات الطبية (مع تطبيع الحروف) =====
-    keywords_js = json.dumps({k: v["keywords"] for k, v in SIGN_DATA.items()}, ensure_ascii=False)
-    labels_js = json.dumps({k: v["label"] for k, v in SIGN_DATA.items()}, ensure_ascii=False)
+    st.markdown("<div class='speech-box'>", unsafe_allow_html=True)
 
-    speech_html = f"""
-    <div style="background-color:#12082d; border:1px solid white; border-radius:10px;
-                padding:16px; font-family:'Times New Roman',serif; color:white; min-height:26vh; margin-top:16px;">
-      <button id="micBtn" style="background-color:#508782; border:none; border-radius:20px;
-              padding:8px 24px; color:white; font-family:'Times New Roman',serif;
-              font-size:16px; cursor:pointer;">🎙️ تحدث الآن</button>
-      <p id="output" style="margin-top:16px; font-size:18px;">النص سيظهر هنا...</p>
-      <div id="matchArea" style="margin-top:12px;"></div>
-      <script>
-      const micBtn = document.getElementById('micBtn');
-      const output = document.getElementById('output');
-      const matchArea = document.getElementById('matchArea');
-      const SIGN_KEYWORDS = {keywords_js};
-      const SIGN_LABELS = {labels_js};
-      let recognition;
+    if st.button("🎙️ تحدث الآن"):
+        st.session_state["listening"] = True
 
-      // توحيد أشكال الحروف المتشابهة (همزات، تاء مربوطة/هاء، تطويل، تشكيل)
-      function normalizeArabic(text) {{
-          return text
-              .replace(/[إأآا]/g, 'ا')
-              .replace(/ى/g, 'ي')
-              .replace(/ة/g, 'ه')
-              .replace(/[\\u064B-\\u0652]/g, '')
-              .replace(/ـ/g, '')
-              .replace(/\\s+/g, ' ')
-              .trim();
-      }}
+    if st.session_state["listening"]:
+        transcript = streamlit_js_eval(
+            js_expressions="""
+            new Promise((resolve) => {
+                try {
+                    const recognition = new webkitSpeechRecognition();
+                    recognition.lang = 'ar-SA';
+                    recognition.continuous = false;
+                    recognition.interimResults = false;
+                    recognition.onresult = function(event) {
+                        resolve(event.results[0][0].transcript);
+                    };
+                    recognition.onerror = function(event) {
+                        resolve('ERROR:' + event.error);
+                    };
+                    recognition.start();
+                } catch (e) {
+                    resolve('ERROR:' + e.message);
+                }
+            })
+            """,
+            key="speech_js",
+            want_output=True,
+        )
 
-      function findMatch(text) {{
-          const normText = normalizeArabic(text);
-          for (const key in SIGN_KEYWORDS) {{
-              const words = SIGN_KEYWORDS[key];
-              for (const w of words) {{
-                  if (normText.includes(normalizeArabic(w))) {{
-                      return key;
-                  }}
-              }}
-          }}
-          return null;
-      }}
+        if transcript is not None:
+            st.session_state["listening"] = False
+            if isinstance(transcript, str) and not transcript.startswith("ERROR"):
+                st.session_state["last_transcript"] = transcript
+                matched = find_match(transcript)
+                if matched:
+                    st.session_state["detected_key"] = matched
+            st.rerun()
 
-      function showConfirmButton(matchedKey) {{
-          matchArea.innerHTML = '';
-          const btn = document.createElement('button');
-          btn.innerText = '✅ تم اكتشاف: ' + SIGN_LABELS[matchedKey] + ' — اضغطي لعرض الفيديو';
-          btn.style = 'background-color:#4fa89b; border:none; border-radius:20px; padding:10px 20px; color:white; font-family:\\'Times New Roman\\',serif; font-size:15px; cursor:pointer;';
-          btn.onclick = function() {{
-              const url = new URL(window.parent.location.href);
-              url.searchParams.set('word', matchedKey);
-              window.parent.location.href = url.toString();
-          }};
-          matchArea.appendChild(btn);
-      }}
+    if st.session_state["last_transcript"]:
+        st.markdown(f"**النص:** {st.session_state['last_transcript']}")
+    else:
+        st.markdown("النص سيظهر هنا بعد الضغط والتحدث...")
 
-      if ('webkitSpeechRecognition' in window) {{
-          recognition = new webkitSpeechRecognition();
-          recognition.lang = 'ar-SA';
-          recognition.continuous = false;
-          recognition.interimResults = false;
-
-          recognition.onresult = function(event) {{
-              const text = event.results[0][0].transcript;
-              output.innerText = text;
-
-              const matchedKey = findMatch(text);
-              if (matchedKey) {{
-                  showConfirmButton(matchedKey);
-              }} else {{
-                  matchArea.innerHTML = '';
-              }}
-          }};
-          recognition.onerror = function(event) {{
-              output.innerText = "حدث خطأ: " + event.error;
-          }};
-      }} else {{
-          output.innerText = "المتصفح لا يدعم هذه الميزة، جربي Google Chrome.";
-      }}
-
-      micBtn.onclick = function() {{
-          output.innerText = "... يستمع الآن";
-          matchArea.innerHTML = '';
-          recognition.start();
-      }};
-      </script>
-    </div>
-    """
-    components.html(speech_html, height=320)
+    st.markdown("</div>", unsafe_allow_html=True)
