@@ -154,11 +154,47 @@ with left_col:
         else:
             st.markdown("<div class='sign-label'>✋ سيظهر الفيديو هنا تلقائيًا فور تحدث الطبيب</div>", unsafe_allow_html=True)
 
-    st.markdown("""
-        <div class='box-notes'>
-            <b>Patient Notes:</b><hr>
-        </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Patient Notes**")
+
+        MOCK_PATIENTS = {
+            "1111111111": {"name": "محمد أحمد", "age": 45, "gender": "ذكر",
+                           "blood_type": "O+", "chronic": "سكري، ضغط",
+                           "allergy": "لا يوجد", "room": "204"},
+            "2222222222": {"name": "سارة علي", "age": 32, "gender": "أنثى",
+                           "blood_type": "A+", "chronic": "لا يوجد",
+                           "allergy": "بنسلين", "room": "108"},
+            "3333333333": {"name": "خالد ناصر", "age": 60, "gender": "ذكر",
+                           "blood_type": "B-", "chronic": "قصور كلوي",
+                           "allergy": "لا يوجد", "room": "312"},
+        }
+
+        if "patient_lookup" not in st.session_state:
+            st.session_state["patient_lookup"] = None
+
+        id_input = st.text_input(
+            "رقم الهوية:",
+            key="patient_id_input",
+            placeholder="مثال: 1111111111"
+        )
+
+        if st.button("🔍 بحث"):
+            st.session_state["patient_lookup"] = MOCK_PATIENTS.get(id_input.strip())
+
+        result = st.session_state["patient_lookup"]
+        if result:
+            st.markdown(f"""
+**الاسم:** {result['name']}
+**العمر:** {result['age']}
+**الجنس:** {result['gender']}
+**فصيلة الدم:** {result['blood_type']}
+**الأمراض المزمنة:** {result['chronic']}
+**الحساسية:** {result['allergy']}
+**رقم الغرفة:** {result['room']}
+""")
+            st.caption("⚠️ بيانات افتراضية لأغراض العرض التوضيحي فقط")
+        elif id_input:
+            st.warning("لا يوجد مريض بهذا الرقم (جربي: 1111111111 / 2222222222 / 3333333333)")
 
 with right_col:
     camera_photo = st.camera_input("مكان الكاميرا (مؤقت)", label_visibility="collapsed")
