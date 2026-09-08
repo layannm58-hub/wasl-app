@@ -184,14 +184,16 @@ with left_col:
         result = st.session_state["patient_lookup"]
         if result:
             st.markdown(f"""
-**الاسم:** {result['name']}
-**العمر:** {result['age']}
-**الجنس:** {result['gender']}
-**فصيلة الدم:** {result['blood_type']}
-**الأمراض المزمنة:** {result['chronic']}
-**الحساسية:** {result['allergy']}
-**رقم الغرفة:** {result['room']}
-""")
+                <div style='line-height:2.2;'>
+                <b>الاسم:</b> {result['name']}<br>
+                <b>العمر:</b> {result['age']}<br>
+                <b>الجنس:</b> {result['gender']}<br>
+                <b>فصيلة الدم:</b> {result['blood_type']}<br>
+                <b>الأمراض المزمنة:</b> {result['chronic']}<br>
+                <b>الحساسية:</b> {result['allergy']}<br>
+                <b>رقم الغرفة:</b> {result['room']}
+                </div>
+            """, unsafe_allow_html=True)
             st.caption("⚠️ بيانات افتراضية لأغراض العرض التوضيحي فقط")
         elif id_input:
             st.warning("لا يوجد مريض بهذا الرقم (جربي: 1111111111 / 2222222222 / 3333333333)")
