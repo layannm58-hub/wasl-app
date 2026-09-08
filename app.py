@@ -215,7 +215,7 @@ with left_col:
                 row = ("<div style='display:flex; justify-content:space-between; align-items:center; "
                        "padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15);'>"
                        f"<span style='text-align:right;'><b>{ar_label}:</b> {ar_value}</span>"
-                       f"<span style='font-size:11px; color:#9a9ab8; text-align:left;'>{en_label}: {en_value}</span>"
+                       f"<span style='font-size:13px; color:#9a9ab8; text-align:left;'>{en_label}: {en_value}</span>"
                        "</div>")
                 rows_html += row
             full_html = "<div style='direction:rtl;'>" + rows_html + "</div>"
