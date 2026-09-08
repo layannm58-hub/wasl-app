@@ -5,7 +5,8 @@ st.set_page_config(page_title="WASL - وَصل", layout="wide")
 
 st.markdown("""
     <style>
-    .stApp {
+
+
         background-color: #12082d;
         color: white;
         font-family: 'Times New Roman', Times, serif;
@@ -58,6 +59,25 @@ st.markdown("""
         color: #cfcfe8;
         font-size: 15px;
         margin-top: 8px;
+    }
+    .review-badge {
+        text-align: center;
+        background-color: #3a2f57;
+        border: 1px solid #8a8ab0;
+        border-radius: 6px;
+        color: #e6c46b;
+        font-size: 13px;
+        padding: 6px 10px;
+        margin-top: 6px;
+    }
+    .consent-box {
+        background-color: #241a3d;
+        border: 1px solid #8a8ab0;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #e6e6f2;
     }
     .speech-box {
         background-color: #12082d;
@@ -124,6 +144,8 @@ if "listening" not in st.session_state:
     st.session_state["listening"] = False
 if "last_transcript" not in st.session_state:
     st.session_state["last_transcript"] = ""
+if "camera_consent" not in st.session_state:
+    st.session_state["camera_consent"] = False
 
 NO_SELECTION = "-- اختر عبارة --"
 options = [NO_SELECTION] + [v["label"] for v in SIGN_DATA.values()]
@@ -153,6 +175,12 @@ with left_col:
             st.markdown("<div style='text-align:center; font-size:11px; color:#8a8aa8; margin-top:4px;'>المصدر: الجمعية السعودية للإعاقة السمعية (sshi.sa)</div>", unsafe_allow_html=True)
         else:
             st.markdown("<div class='sign-label'>✋ سيظهر الفيديو هنا تلقائيًا فور تحدث الطبيب</div>", unsafe_allow_html=True)
+
+        # تنويه: النتيجة مقترحة وتتطلب مراجعة الكادر الصحي، وليست تشخيصًا نهائيًا
+        st.markdown(
+            "<div class='review-badge'>⚕️ ترجمة مقترحة — يُرجى من الكادر الصحي التأكد منها قبل اتخاذ أي قرار</div>",
+            unsafe_allow_html=True
+        )
 
     with st.container(border=True):
         st.markdown("**Patient Notes**")
@@ -225,7 +253,21 @@ with left_col:
             st.warning("لا يوجد مريض بهذا الرقم (جربي: 1111111111 / 2222222222 / 3333333333)")
 
 with right_col:
-    camera_photo = st.camera_input("مكان الكاميرا (مؤقت)", label_visibility="collapsed")
+    # ===== تنويه الموافقة قبل تفعيل الكاميرا =====
+    if not st.session_state["camera_consent"]:
+        st.markdown(
+            "<div class='consent-box'>"
+            "🔒 <b>قبل تشغيل الكاميرا:</b> يُستخدم البث المرئي فقط لترجمة لغة الإشارة لحظيًا، "
+            "ولا يتم تسجيل أو تخزين أي فيديو أو صورة للمريض. "
+            "يُرجى التأكد من أخذ موافقة المريض أو مرافقه قبل المتابعة."
+            "</div>",
+            unsafe_allow_html=True
+        )
+        if st.button("✅ تم الحصول على الموافقة — تشغيل الكاميرا"):
+            st.session_state["camera_consent"] = True
+            st.rerun()
+    else:
+        camera_photo = st.camera_input("مكان الكاميرا (مؤقت)", label_visibility="collapsed")
 
     st.markdown("<div class='speech-box'>", unsafe_allow_html=True)
 
