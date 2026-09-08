@@ -158,15 +158,33 @@ with left_col:
         st.markdown("**Patient Notes**")
 
         MOCK_PATIENTS = {
-            "1111111111": {"name": "محمد أحمد", "age": 45, "gender": "ذكر",
-                           "blood_type": "O+", "chronic": "سكري، ضغط",
-                           "allergy": "لا يوجد", "room": "204"},
-            "2222222222": {"name": "سارة علي", "age": 32, "gender": "أنثى",
-                           "blood_type": "A+", "chronic": "لا يوجد",
-                           "allergy": "بنسلين", "room": "108"},
-            "3333333333": {"name": "خالد ناصر", "age": 60, "gender": "ذكر",
-                           "blood_type": "B-", "chronic": "قصور كلوي",
-                           "allergy": "لا يوجد", "room": "312"},
+            "1111111111": {
+                "name_ar": "محمد أحمد", "name_en": "Mohammed Ahmed",
+                "age": 45,
+                "gender_ar": "ذكر", "gender_en": "Male",
+                "blood_type": "O+",
+                "chronic_ar": "سكري، ضغط", "chronic_en": "Diabetes, Hypertension",
+                "allergy_ar": "لا يوجد", "allergy_en": "None",
+                "room": "204",
+            },
+            "2222222222": {
+                "name_ar": "سارة علي", "name_en": "Sarah Ali",
+                "age": 32,
+                "gender_ar": "أنثى", "gender_en": "Female",
+                "blood_type": "A+",
+                "chronic_ar": "لا يوجد", "chronic_en": "None",
+                "allergy_ar": "بنسلين", "allergy_en": "Penicillin",
+                "room": "108",
+            },
+            "3333333333": {
+                "name_ar": "خالد ناصر", "name_en": "Khalid Nasser",
+                "age": 60,
+                "gender_ar": "ذكر", "gender_en": "Male",
+                "blood_type": "B-",
+                "chronic_ar": "قصور كلوي", "chronic_en": "Kidney Failure",
+                "allergy_ar": "لا يوجد", "allergy_en": "None",
+                "room": "312",
+            },
         }
 
         if "patient_lookup" not in st.session_state:
@@ -184,20 +202,20 @@ with left_col:
         result = st.session_state["patient_lookup"]
         if result:
             fields = [
-                ("الاسم", "Name", result['name']),
-                ("العمر", "Age", result['age']),
-                ("الجنس", "Gender", result['gender']),
-                ("فصيلة الدم", "Blood Type", result['blood_type']),
-                ("الأمراض المزمنة", "Chronic Conditions", result['chronic']),
-                ("الحساسية", "Allergy", result['allergy']),
-                ("رقم الغرفة", "Room No", result['room']),
+                ("الاسم", "Name", result['name_ar'], result['name_en']),
+                ("العمر", "Age", result['age'], result['age']),
+                ("الجنس", "Gender", result['gender_ar'], result['gender_en']),
+                ("فصيلة الدم", "Blood Type", result['blood_type'], result['blood_type']),
+                ("الأمراض المزمنة", "Chronic Conditions", result['chronic_ar'], result['chronic_en']),
+                ("الحساسية", "Allergy", result['allergy_ar'], result['allergy_en']),
+                ("رقم الغرفة", "Room No", result['room'], result['room']),
             ]
             rows_html = ""
-            for ar_label, en_label, value in fields:
+            for ar_label, en_label, ar_value, en_value in fields:
                 row = ("<div style='display:flex; justify-content:space-between; align-items:center; "
                        "padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15);'>"
-                       f"<span style='font-size:11px; color:#9a9ab8;'>{en_label}</span>"
-                       f"<span style='text-align:right;'><b>{ar_label}:</b> {value}</span>"
+                       f"<span style='text-align:right;'><b>{ar_label}:</b> {ar_value}</span>"
+                       f"<span style='font-size:11px; color:#9a9ab8; text-align:left;'>{en_label}: {en_value}</span>"
                        "</div>")
                 rows_html += row
             full_html = "<div style='direction:rtl;'>" + rows_html + "</div>"
