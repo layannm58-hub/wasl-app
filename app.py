@@ -86,6 +86,26 @@ st.markdown("""
         padding: 16px;
         margin-top: 16px;
     }
+    .patient-view-box {
+        background-color: #ffffff;
+        color: #12082d;
+        border: 2px solid #508782;
+        border-radius: 10px;
+        padding: 24px;
+        margin-top: 16px;
+        text-align: center;
+    }
+    .patient-view-title {
+        font-size: 14px;
+        color: #508782;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    .patient-view-text {
+        font-size: 32px;
+        font-weight: bold;
+        line-height: 1.4;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -314,3 +334,15 @@ with right_col:
         st.markdown("النص سيظهر هنا بعد الضغط والتحدث...")
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+    # ===== ما يظهر للمريض (نفس النص، بخط كبير وواضح) =====
+    patient_text = st.session_state["last_transcript"] or "سيظهر كلام الطبيب هنا..."
+    st.markdown(
+        f"""
+        <div class='patient-view-box'>
+            <div class='patient-view-title'>👤 ما يظهر للمريض</div>
+            <div class='patient-view-text'>{patient_text}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
