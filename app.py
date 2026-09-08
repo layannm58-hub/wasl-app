@@ -194,14 +194,14 @@ with left_col:
             ]
             rows_html = ""
             for ar_label, en_label, value in fields:
-                rows_html += f"""
-                <div style='display:flex; justify-content:space-between; align-items:center;
-                            padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15);'>
-                    <span style='font-size:11px; color:#9a9ab8;'>{en_label}</span>
-                    <span style='text-align:right;'><b>{ar_label}:</b> {value}</span>
-                </div>
-                """
-            st.markdown(f"<div style='direction:rtl;'>{rows_html}</div>", unsafe_allow_html=True)
+                row = ("<div style='display:flex; justify-content:space-between; align-items:center; "
+                       "padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15);'>"
+                       f"<span style='font-size:11px; color:#9a9ab8;'>{en_label}</span>"
+                       f"<span style='text-align:right;'><b>{ar_label}:</b> {value}</span>"
+                       "</div>")
+                rows_html += row
+            full_html = "<div style='direction:rtl;'>" + rows_html + "</div>"
+            st.markdown(full_html, unsafe_allow_html=True)
             st.caption("⚠️ بيانات افتراضية لأغراض العرض التوضيحي فقط")
         elif id_input:
             st.warning("لا يوجد مريض بهذا الرقم (جربي: 1111111111 / 2222222222 / 3333333333)")
