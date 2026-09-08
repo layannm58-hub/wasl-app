@@ -87,7 +87,7 @@ st.markdown("""
         margin-top: 16px;
     }
     .patient-view-box {
-        background-color: #ffffff;
+        background-color: #e8f4f2;
         color: #12082d;
         border: 2px solid #508782;
         border-radius: 10px;
