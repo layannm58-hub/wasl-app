@@ -183,17 +183,25 @@ with left_col:
 
         result = st.session_state["patient_lookup"]
         if result:
-            st.markdown(f"""
-                <div style='line-height:2.2;'>
-                <b>الاسم:</b> {result['name']}<br>
-                <b>العمر:</b> {result['age']}<br>
-                <b>الجنس:</b> {result['gender']}<br>
-                <b>فصيلة الدم:</b> {result['blood_type']}<br>
-                <b>الأمراض المزمنة:</b> {result['chronic']}<br>
-                <b>الحساسية:</b> {result['allergy']}<br>
-                <b>رقم الغرفة:</b> {result['room']}
+            fields = [
+                ("الاسم", "Name", result['name']),
+                ("العمر", "Age", result['age']),
+                ("الجنس", "Gender", result['gender']),
+                ("فصيلة الدم", "Blood Type", result['blood_type']),
+                ("الأمراض المزمنة", "Chronic Conditions", result['chronic']),
+                ("الحساسية", "Allergy", result['allergy']),
+                ("رقم الغرفة", "Room No", result['room']),
+            ]
+            rows_html = ""
+            for ar_label, en_label, value in fields:
+                rows_html += f"""
+                <div style='display:flex; justify-content:space-between; align-items:center;
+                            padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15);'>
+                    <span style='font-size:11px; color:#9a9ab8;'>{en_label}</span>
+                    <span style='text-align:right;'><b>{ar_label}:</b> {value}</span>
                 </div>
-            """, unsafe_allow_html=True)
+                """
+            st.markdown(f"<div style='direction:rtl;'>{rows_html}</div>", unsafe_allow_html=True)
             st.caption("⚠️ بيانات افتراضية لأغراض العرض التوضيحي فقط")
         elif id_input:
             st.warning("لا يوجد مريض بهذا الرقم (جربي: 1111111111 / 2222222222 / 3333333333)")
