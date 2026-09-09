@@ -1,2 +1,11 @@
 streamlit
 streamlit-js-eval
+streamlit
+opencv-python-headless
+numpy
+joblib
+mediapipe
+streamlit-webrtc
+streamlit-js-eval
+av
+scikit-learn
